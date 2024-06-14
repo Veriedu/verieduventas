@@ -78,6 +78,7 @@ if st.button("Predecir Conversión"):
     probabilidad_conversion = model_traffic_to_leads.predict_proba(nuevo_dato)[:, 1][0]
     st.write(f"Probabilidad de Conversión: {probabilidad_conversion:.2f}")
 
-# Ejecuta este script con: streamlit run script.py
+# Ejecuta este script con: streamlit run streamlit_app.py
+
 
 
