@@ -4,7 +4,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score
 import streamlit as st
 
-
 # Datos inventados para tráfico a leads
 data = pd.DataFrame({
     'ubicacion': [1, 2, 1, 3, 2, 1, 2, 3, 1, 2],
@@ -78,7 +77,3 @@ if st.button("Predecir Conversión"):
     
     probabilidad_conversion = model_traffic_to_leads.predict_proba(nuevo_dato)[:, 1][0]
     st.write(f"Probabilidad de Conversión: {probabilidad_conversion:.2f}")
-
-# Ejecuta este script con: streamlit run streamlit_app.py
-
-
