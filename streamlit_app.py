@@ -1,6 +1,3 @@
-# Instalar Streamlit
-# !pip install streamlit
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -82,4 +79,5 @@ if st.button("Predecir Conversión"):
     st.write(f"Probabilidad de Conversión: {probabilidad_conversion:.2f}")
 
 # Ejecuta este script con: streamlit run script.py
+
 
