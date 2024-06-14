@@ -1,7 +1,5 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, roc_auc_score
+import numpy as np
 import streamlit as st
 
 # Datos inventados para tráfico a leads
@@ -21,28 +19,47 @@ data = pd.DataFrame({
     'conversion_a_lead': [1, 0, 1, 0, 1, 1, 0, 1, 0, 1]
 })
 
-# Variables independientes y dependiente para tráfico a leads
-X_traffic_to_leads = data[['ubicacion', 'industria', 'tamano_empresa', 'cargo', 'fuente_trafico', 
-                           'paginas_vistas', 'tiempo_sitio', 'interacciones', 'contenido_visto', 
-                           'alineacion_producto', 'ofertas_promocionales', 'reputacion_testimonios']]
-y_traffic_to_leads = data['conversion_a_lead']
+# Implementar una simple regresión logística manualmente
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
 
-# Dividir los datos en conjuntos de entrenamiento y prueba
-X_train_traffic, X_test_traffic, y_train_traffic, y_test_traffic = train_test_split(X_traffic_to_leads, y_traffic_to_leads, test_size=0.3, random_state=42)
+def predict_proba(X, theta):
+    return sigmoid(np.dot(X, theta))
 
-# Entrenar el modelo de regresión logística para tráfico a leads
-model_traffic_to_leads = LogisticRegression()
-model_traffic_to_leads.fit(X_train_traffic, y_train_traffic)
+def cost_function(X, y, theta):
+    m = len(y)
+    h = predict_proba(X, theta)
+    epsilon = 1e-5  # para evitar log(0)
+    cost = (-1/m) * (y * np.log(h + epsilon) + (1 - y) * np.log(1 - h + epsilon))
+    return np.sum(cost)
 
-# Hacer predicciones y evaluar el modelo para tráfico a leads
-y_pred_traffic = model_traffic_to_leads.predict(X_test_traffic)
-accuracy_traffic = accuracy_score(y_test_traffic, y_pred_traffic)
-roc_auc_traffic = roc_auc_score(y_test_traffic, model_traffic_to_leads.predict_proba(X_test_traffic)[:, 1])
+def gradient_descent(X, y, theta, learning_rate, iterations):
+    m = len(y)
+    for _ in range(iterations):
+        gradient = np.dot(X.T, (predict_proba(X, theta) - y)) / m
+        theta -= learning_rate * gradient
+    return theta
+
+# Preparar los datos para la regresión logística
+X = data[['ubicacion', 'industria', 'tamano_empresa', 'cargo', 'fuente_trafico', 'paginas_vistas',
+          'tiempo_sitio', 'interacciones', 'contenido_visto', 'alineacion_producto', 
+          'ofertas_promocionales', 'reputacion_testimonios']]
+y = data['conversion_a_lead']
+X = np.c_[np.ones((X.shape[0], 1)), X]  # agregar la columna de intercepto
+y = y.values
+
+# Inicializar los parámetros theta
+theta = np.zeros(X.shape[1])
+
+# Configurar los parámetros de entrenamiento
+learning_rate = 0.01
+iterations = 1000
+
+# Entrenar el modelo
+theta = gradient_descent(X, y, theta, learning_rate, iterations)
 
 # Crear la interfaz con Streamlit
 st.title("Predicción de Conversión de Tráfico a Leads")
-st.write(f"Accuracy: {accuracy_traffic}")
-st.write(f"ROC AUC Score: {roc_auc_traffic}")
 
 # Formularios interactivos para ingresar nuevos datos
 ubicacion = st.selectbox("Ubicación", [1, 2, 3])
@@ -60,20 +77,9 @@ reputacion_testimonios = st.number_input("Reputación y Testimonios", min_value=
 
 # Predicción con nuevos datos
 if st.button("Predecir Conversión"):
-    nuevo_dato = pd.DataFrame({
-        'ubicacion': [ubicacion],
-        'industria': [industria],
-        'tamano_empresa': [tamano_empresa],
-        'cargo': [cargo],
-        'fuente_trafico': [fuente_trafico],
-        'paginas_vistas': [paginas_vistas],
-        'tiempo_sitio': [tiempo_sitio],
-        'interacciones': [interacciones],
-        'contenido_visto': [contenido_visto],
-        'alineacion_producto': [alineacion_producto],
-        'ofertas_promocionales': [ofertas_promocionales],
-        'reputacion_testimonios': [reputacion_testimonios]
-    })
-    
-    probabilidad_conversion = model_traffic_to_leads.predict_proba(nuevo_dato)[:, 1][0]
+    nuevo_dato = np.array([1, ubicacion, industria, tamano_empresa, cargo, fuente_trafico, paginas_vistas,
+                           tiempo_sitio, interacciones, contenido_visto, alineacion_producto, 
+                           ofertas_promocionales, reputacion_testimonios])
+    probabilidad_conversion = predict_proba(nuevo_dato, theta)
     st.write(f"Probabilidad de Conversión: {probabilidad_conversion:.2f}")
+
