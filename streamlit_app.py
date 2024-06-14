@@ -1,5 +1,4 @@
 import pandas as pd
-from sklearn.metrics import accuracy_score, roc_auc_score
 import streamlit as st
 
 # Datos inventados para tráfico a leads
